@@ -1,0 +1,54 @@
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: conduit_db
+    env_file:
+      - .env
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: always
+    networks:
+      - conduit_net
+
+
+  backend:
+    build:
+      context: .  # Pfad zum Ordner, wo das Backend dockerfile liegt
+      dockerfile: dockerfile.backend
+    container_name: conduit_backend
+    ports:
+      - ${SERVER_PORT_BACKEND}:${CONTAINER_PORT_BACKEND}
+    env_file:
+      - .env
+    depends_on:
+      - db
+    volumes:
+      - backend_data:/app/data
+    restart: always
+    networks:
+      - conduit_net
+
+
+  frontend:
+  build:
+    context: .
+    dockerfile: dockerfile.frontend
+  container_name: conduit_frontend
+  ports:
+    - ${SERVER_PORT_FRONTEND}:${CONTAINER_PORT_FRONTEND}
+  env_file:
+    - .env
+  depends_on:
+    - backend
+  restart: always
+  networks:
+    - conduit_net
+
+
+volumes:
+  postgres_data:
+  backend_data:
+
+networks:
+  conduit_net:
+    driver: bridge
