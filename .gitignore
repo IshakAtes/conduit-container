@@ -13,3 +13,11 @@ build/
 
 # docker
 docker-compose.override.yml
+
+# database
+db.sqlite3
+db/
+
+# project
+conduit-frontend
+conduit-backend
