@@ -1,4 +1,7 @@
 # Conduit Container
+**Guide:**<br>
+[Link to Pdf Checklist](https://github.com/IshakAtes/conduit-container/blob/e317db84d754bef8609d07e03e4f50e828255f58/Conduit%20Container%20Checkliste.pdf)<br><br>
+
 Containerized full-stack Conduit application with a Vue.js frontend and Django backend, fully orchestrated via Docker Compose for cloud deployment.
 
 ## Table of Contents
