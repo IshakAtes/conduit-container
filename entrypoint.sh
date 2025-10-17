@@ -5,6 +5,9 @@ echo "Running database migrations..."
 python manage.py makemigrations
 python manage.py migrate
 
+echo "Creating superuser if not exists..."
+python create_superuser.py
+
 echo "Collecting static files..."
 python manage.py collectstatic --noinput
 
