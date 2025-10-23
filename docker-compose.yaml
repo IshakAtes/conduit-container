@@ -21,7 +21,7 @@ services:
       dockerfile: dockerfile.frontend
     container_name: conduit_frontend
     ports:
-      - ${SERVER_PORT_FRONTEND:-3000}:${CONTAINER_PORT_FRONTEND:-80}
+      - ${SERVER_PORT_FRONTEND:-8282}:${CONTAINER_PORT_FRONTEND:-80}
     env_file:
       - .env
     depends_on:
