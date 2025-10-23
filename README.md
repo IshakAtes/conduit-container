@@ -49,11 +49,25 @@ docker compose up -d
 ## Conclusion:
 **Once all containers are up and running:**
 - The frontend will be available at: `http://<server-ip>:80`
-- The backend API will be available at: `http://<server-ip>:3000`
+- The backend API will be available at: `http://<server-ip>:8000`
 - PostgreSQL Database: accessible inside the Docker network at: `db:5432`
 
 
 ## Usage
+
+**Stop all running containers**
+Stops and removes all running containers, networks, and volumes created by Docker Compose.
+Use the `-v` flag to also delete associated volumes for a completely clean setup.
+``` bash
+docker compose down -v
+```
+
+**Rebuild after changes**
+Forces Docker to rebuild the image from scratch, ignoring all cached layers.
+Useful when dependencies or base images have changed and you want a completely fresh build.
+``` bash
+docker compose build --no-cache
+```
 
 **Rebuild after changes**
 If you modify your `code` or `Dockerfiles`, rebuild the containers:
@@ -69,11 +83,6 @@ docker compose logs -f
 **Save logs to a file**
 ``` bash
 docker logs <container-name> > conduit-logs.txt
-```
-
-**Stop all running containers**
-``` bash
-docker compose down
 ```
 
 **Configurations**<br>
