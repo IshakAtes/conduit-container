@@ -31,9 +31,11 @@ Before starting, ensure you have the following installed on your server:
 
 ### 1. Clone the repositories
 ```bash
-git clone https://github.com/IshakAtes/conduit-container.git # Conduit Containerized repo
-git clone https://github.com/IshakAtes/conduit-frontend.git # Conduit Frontend
-git clone https://github.com/IshakAtes/conduit-backend.git # Conduit Backend
+git clone https://github.com/IshakAtes/conduit-container.git # Conduit Containerized fullstack repo
+cd conduit-container
+
+# Initialize and update submodules for frontend and backend
+git submodule update --init --recursive
 ```
 
 ### 2. Create an environment configuration file
