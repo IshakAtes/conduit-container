@@ -2,7 +2,7 @@
 **Guide:**<br>
 [Link to Pdf Checklist](https://github.com/IshakAtes/conduit-container/blob/e317db84d754bef8609d07e03e4f50e828255f58/Conduit%20Container%20Checkliste.pdf)<br><br>
 
-Containerized full-stack Conduit application with a Vue.js frontend and Django backend, fully orchestrated via Docker Compose for cloud deployment.
+Containerized full-stack Conduit application with a Angular frontend and Django backend, fully orchestrated via Docker Compose for cloud deployment.
 
 ## Table of Contents
 1. [Project Overview](#project-overview)  
@@ -31,7 +31,7 @@ Before starting, ensure you have the following installed on your server:
 
 ### 1. Clone the repositories
 ```bash
-git clone https://github.com/IshakAtes/conduit-container.git # Conduit Containerized fullstack repo
+git clone git@github.com:IshakAtes/conduit-container.git # Conduit Containerized fullstack repo
 cd conduit-container
 
 # Initialize and update submodules for frontend and backend

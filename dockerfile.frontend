@@ -2,11 +2,11 @@
 FROM node:20-alpine AS builder
 WORKDIR /app
 
-# Nur die package-Dateien zuerst kopieren (Cache für npm install)
+# Copy only the package files first (cache for npm install)
 COPY conduit-frontend/package*.json ./
 RUN npm ci
 
-# Dann den ganzen Frontend-Code kopieren
+# Then copy all the frontend code
 COPY conduit-frontend/ .
 
 RUN npm run build --prod
