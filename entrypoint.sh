@@ -2,7 +2,10 @@
 set -e  # Stoppt bei Fehlern
 
 echo "Running database migrations..."
-python manage.py makemigrations
+
+# In Prod Setup you dont want to make the migrations every deployment but in Dev Setup.
+# python manage.py makemigrations
+
 python manage.py migrate
 
 echo "Creating superuser if not exists..."
