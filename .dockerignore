@@ -1,6 +1,8 @@
-node_modules
-build
 .git
+node_modules
+venv
 .env
-__pycache__/
-*.pyc
+Dockerfile*
+docker-compose*.yml
+*.log
+Conduit Container Checkliste.pdf

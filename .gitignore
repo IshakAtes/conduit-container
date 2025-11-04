@@ -1,6 +1,23 @@
-__pycache__/
-*.pyc
+# node / python
 node_modules/
-build/
 venv/
+__pycache__/
+
+# secrets and env
 .env
+
+# build artifacts
+dist/
+build/
+*.log
+
+# docker
+docker-compose.override.yml
+
+# database
+db.sqlite3
+db/
+
+# project
+# conduit-frontend
+# conduit-backend
