@@ -70,8 +70,9 @@ jobs:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
 
       - name: Run Docker Compose
-        run: |
-          docker compose up -d --build
+        run: docker compose --env-file example.env up -d --build
+        env:
+          SECRET_IP: ${{ secrets.SECRET_IP }}
 
 
       # Sign the resulting Docker image digest except on PRs.
