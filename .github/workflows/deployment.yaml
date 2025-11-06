@@ -69,10 +69,14 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
 
-      - name: Run Docker Compose
-        run: docker compose --env-file example.env up -d --build
+        # Build and push Docker image with Buildx (don't push on PR)
+        # https://github.com/docker/build-push-action
+      - name: Copy example.env to .env
+        run: cp example.env .env
         env:
           SECRET_IP: ${{ secrets.SECRET_IP }}
+
+
 
 
       # Sign the resulting Docker image digest except on PRs.
