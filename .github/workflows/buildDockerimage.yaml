@@ -1,4 +1,4 @@
-name: Build dockerimage
+name: Build and Deploy
 
 # This workflow uses actions that are not certified by GitHub.
 # They are provided by a third-party and are governed by
@@ -119,3 +119,24 @@ jobs:
         # This step uses the identity token to provision an ephemeral certificate
         # against the sigstore community Fulcio instance.
         run: echo "${TAGS}" | xargs -I {} cosign sign --yes {}@${DIGEST}
+
+
+      # Remote SSH Command
+      - name: Execute remote SSH commands using password
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.SECRET_IP }}
+          username: linuxserver.io
+          password: ${{ secrets.PASSWORD }}
+          port: ${{ secrets.PORT }}
+          script: whoami
+
+
+
+
+            # echo "Connected to server"
+            # cd /home/deploy/conduit-container || exit 1
+            # docker pull ghcr.io/ishakates/conduit-container:backend-latest
+            # docker pull ghcr.io/ishakates/conduit-container:frontend-latest
+            # docker compose down
+            # docker compose up -d
