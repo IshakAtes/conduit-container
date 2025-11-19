@@ -126,8 +126,8 @@ jobs:
         uses: appleboy/ssh-action@v1
         with:
           host: ${{ secrets.SECRET_IP }}
-          username: linuxserver.io
-          password: ${{ secrets.PASSWORD }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }} 
           port: ${{ secrets.PORT }}
           script: whoami
 
