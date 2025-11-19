@@ -34,8 +34,11 @@ jobs:
       id-token: write
 
     steps:
-      - name: Checkout repository
+      # Checkout including submodules (Backend + Frontend)
+      - name: Checkout with submodules
         uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
       # Install the cosign tool except on PR
       # https://github.com/sigstore/cosign-installer
@@ -77,6 +80,9 @@ jobs:
           SECRET_IP: ${{ secrets.SECRET_IP }}
 
 
+      # -----------------------
+      # BACKEND IMAGE
+      # -----------------------
       # Build and push Docker image with Buildx (don't push on PR)
       # https://github.com/docker/build-push-action
       - name: Build and push backend image
@@ -92,6 +98,25 @@ jobs:
           cache-to: type=gha,mode=max
 
 
+      # Sign the resulting Docker image digest except on PRs.
+      # This will only write to the public Rekor transparency log when the Docker
+      # repository is public to avoid leaking data.  If you would like to publish
+      # transparency data even for private images, pass --force to cosign below.
+      # https://github.com/sigstore/cosign
+      - name: Sign backend image
+        if: ${{ github.event_name != 'pull_request' }}
+        env:
+          # https://docs.github.com/en/actions/security-guides/security-hardening-for-github-actions#using-an-intermediate-environment-variable
+          TAGS: ${{ steps.meta.outputs.tags }}
+          DIGEST: ${{ steps.build-and-push.outputs.digest }}
+        # This step uses the identity token to provision an ephemeral certificate
+        # against the sigstore community Fulcio instance.
+        run: echo "${TAGS}" | xargs -I {} cosign sign --yes {}@${DIGEST}
+
+
+      # -----------------------
+      # FRONTEND IMAGE
+      # -----------------------
       - name: Build and push frontend image
         id: build-and-push-frontend
         uses: docker/build-push-action@0565240e2d4ab88bba5387d719585280857ece09 # v5.0.0
@@ -99,22 +124,16 @@ jobs:
           context: .
           file: ./dockerfile.frontend
           push: ${{ github.event_name != 'pull_request' }}
-          tags: ${{ steps.meta.outputs.tags }}
+          tags: ${{ steps.meta.outputs.togs }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-
-      # Sign the resulting Docker image digest except on PRs.
-      # This will only write to the public Rekor transparency log when the Docker
-      # repository is public to avoid leaking data.  If you would like to publish
-      # transparency data even for private images, pass --force to cosign below.
-      # https://github.com/sigstore/cosign
-      - name: Sign the published Docker image
+      - name: Sign frontend image
         if: ${{ github.event_name != 'pull_request' }}
         env:
           # https://docs.github.com/en/actions/security-guides/security-hardening-for-github-actions#using-an-intermediate-environment-variable
-          TAGS: ${{ steps.meta.outputs.tags }}
+          TAGS: ${{ steps.meta.outputs.togs }}
           DIGEST: ${{ steps.build-and-push.outputs.digest }}
         # This step uses the identity token to provision an ephemeral certificate
         # against the sigstore community Fulcio instance.
@@ -129,14 +148,14 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }} 
           port: ${{ secrets.PORT }}
-          script: whoami
-
-
-
-
-            # echo "Connected to server"
-            # cd /home/deploy/conduit-container || exit 1
-            # docker pull ghcr.io/ishakates/conduit-container:backend-latest
-            # docker pull ghcr.io/ishakates/conduit-container:frontend-latest
-            # docker compose down
-            # docker compose up -d
+          # echo "Connected to server"
+          # cd /home/deploy/conduit-container || exit 1
+          # docker pull ghcr.io/ishakates/conduit-container:backend-latest
+          # docker pull ghcr.io/ishakates/conduit-container:frontend-latest
+          # docker compose down
+          # docker compose up -d
+          script: |
+            whoami
+            echo "Pulling new images..."
+            docker pull ghcr.io/ishakates/conduit-container:backend-latest
+            docker pull ghcr.io/ishakates/conduit-container:frontend-latest
