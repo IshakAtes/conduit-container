@@ -35,10 +35,25 @@ jobs:
 
     steps:
       # Checkout including submodules (Backend + Frontend)
-      - name: Checkout with submodules
+      # 1️⃣ Checkout Hauptrepo (conduit-container)
+      - name: Checkout main repo
+        uses: actions/checkout@v4
+
+      # 2️⃣ Checkout Backend-Repo
+      - name: Checkout backend repo
         uses: actions/checkout@v4
         with:
-          submodules: recursive
+          repository: IshakAtes/conduit-backend
+          path: conduit-backend
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      # 3️⃣ Checkout Frontend-Repo
+      - name: Checkout frontend repo
+        uses: actions/checkout@v4
+        with:
+          repository: IshakAtes/conduit-frontend
+          path: conduit-frontend
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       # Install the cosign tool except on PR
       # https://github.com/sigstore/cosign-installer
@@ -89,7 +104,7 @@ jobs:
         id: build-and-push-backend
         uses: docker/build-push-action@0565240e2d4ab88bba5387d719585280857ece09 # v5.0.0
         with:
-          context: .
+          context: ./conduit-backend
           file: ./dockerfile.backend
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
@@ -121,7 +136,7 @@ jobs:
         id: build-and-push-frontend
         uses: docker/build-push-action@0565240e2d4ab88bba5387d719585280857ece09 # v5.0.0
         with:
-          context: .
+          context: ./conduit-frontend
           file: ./dockerfile.frontend
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.togs }}
@@ -141,7 +156,7 @@ jobs:
 
 
       # Remote SSH Command
-      - name: Execute remote SSH commands using password
+      - name: Deploy via SSH
         uses: appleboy/ssh-action@v1
         with:
           host: ${{ secrets.SECRET_IP }}
@@ -159,3 +174,5 @@ jobs:
             echo "Pulling new images..."
             docker pull ghcr.io/ishakates/conduit-container:backend-latest
             docker pull ghcr.io/ishakates/conduit-container:frontend-latest
+            docker compose down
+            docker compose up -d
