@@ -15,31 +15,19 @@ env:
 jobs:
 
   # --------------------------------------------------------
-  # Job A: Checkout main, backend & frontend repositories
+  # Job A: Checkout main repo inkl. Submodule
   # --------------------------------------------------------
   checkout:
     runs-on: ubuntu-latest
     steps:
-      # Checkout main repo (conduit-container) including submodules (Backend + Frontend)
-      - name: Checkout main repo
-        uses: actions/checkout@v4
-
-      - name: Checkout backend repo
+      - name: Checkout main repo with submodules
         uses: actions/checkout@v4
         with:
-          repository: IshakAtes/conduit-backend
-          path: conduit-backend
-          token: ${{ secrets.GITHUB_TOKEN }}
+          submodules: true  # <-- lädt Backend & Frontend automatisch
 
-      - name: Checkout frontend repo
-        uses: actions/checkout@v4
-        with:
-          repository: IshakAtes/conduit-frontend
-          path: conduit-frontend
-          token: ${{ secrets.GITHUB_TOKEN }}
-
-      # - name: Copy environment file
-      #   run: cp example.env .env
+      # Optional: Environment file kopieren
+      - name: Copy environment file
+        run: cp example.env .env
 
 
   # --------------------------------------------------------
@@ -49,31 +37,15 @@ jobs:
     runs-on: ubuntu-latest
     needs: checkout
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Extract metadata
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backend
-
-      - name: Set up Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Build backend (no push)
-        id: build
+      - name: Build backend image
         uses: docker/build-push-action@v5
         with:
           context: .
           file: ./dockerfile.backend
           push: false
-          tags: ${{ steps.meta.outputs.tags }}
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backend:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
-
-    outputs:
-      backend_tag: ${{ steps.meta.outputs.tags }}
-      backend_digest: ${{ steps.build.outputs.digest }}
 
 
   # --------------------------------------------------------
@@ -83,31 +55,15 @@ jobs:
     runs-on: ubuntu-latest
     needs: checkout
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Extract metadata
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-frontend
-
-      - name: Set up Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Build frontend (no push)
-        id: build
+      - name: Build frontend image
         uses: docker/build-push-action@v5
         with:
           context: .
           file: ./dockerfile.frontend
           push: false
-          tags: ${{ steps.meta.outputs.tags }}
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-frontend:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
-
-    outputs:
-      frontend_tag: ${{ steps.meta.outputs.tags }}
-      frontend_digest: ${{ steps.build.outputs.digest }}
 
 
   # --------------------------------------------------------
@@ -117,8 +73,6 @@ jobs:
     runs-on: ubuntu-latest
     needs: build-backend-image
     steps:
-      - uses: actions/checkout@v4
-
       - name: Login to GHCR
         uses: docker/login-action@v3
         with:
@@ -127,9 +81,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Push backend image
-        run: |
-          docker pull $(echo "${{ needs.build-backend-image.outputs.backend_tag }}" | head -n 1)
-          docker push $(echo "${{ needs.build-backend-image.outputs.backend_tag }}" | head -n 1)
+        run: docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backend:latest
 
 
   # --------------------------------------------------------
@@ -139,8 +91,6 @@ jobs:
     runs-on: ubuntu-latest
     needs: build-frontend-image
     steps:
-      - uses: actions/checkout@v4
-
       - name: Login to GHCR
         uses: docker/login-action@v3
         with:
@@ -149,9 +99,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Push frontend image
-        run: |
-          docker pull $(echo "${{ needs.build-frontend-image.outputs.frontend_tag }}" | head -n 1)
-          docker push $(echo "${{ needs.build-frontend-image.outputs.frontend_tag }}" | head -n 1)
+        run: docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-frontend:latest
 
 
   # --------------------------------------------------------
@@ -162,7 +110,6 @@ jobs:
     needs:
       - push-backend-image
       - push-frontend-image
-
     steps:
       - name: Install cosign
         uses: sigstore/cosign-installer@v3
@@ -170,10 +117,10 @@ jobs:
           cosign-release: 'v2.2.4'
 
       - name: Sign backend image
-        run: echo "${{ needs.build-backend-image.outputs.backend_tag }}" | xargs cosign sign --yes
+        run: echo "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backend:latest" | xargs cosign sign --yes
 
       - name: Sign frontend image
-        run: echo "${{ needs.build-frontend-image.outputs.frontend_tag }}" | xargs cosign sign --yes
+        run: echo "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-frontend:latest" | xargs cosign sign --yes
 
 
   # --------------------------------------------------------
@@ -192,7 +139,7 @@ jobs:
           port: ${{ secrets.PORT }}
           script: |
             echo "Pulling updated images..."
-            docker pull ghcr.io/ishakates/conduit-container-backend:latest
-            docker pull ghcr.io/ishakates/conduit-container-frontend:latest
+            docker pull ${{ env.REGISTRY }}/ishakates/conduit-container-backend:latest
+            docker pull ${{ env.REGISTRY }}/ishakates/conduit-container-frontend:latest
             docker compose down
             docker compose up -d
