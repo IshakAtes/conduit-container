@@ -1,45 +1,29 @@
-name: CI/CD
-
-# This workflow uses actions that are not certified by GitHub.
-# They are provided by a third-party and are governed by
-# separate terms of service, privacy policy, and support
-# documentation.
+name: CI/CD Workflow
 
 on:
-  schedule:
-    - cron: '29 7 * * *'
   push:
-    branches: [ "main" ]
-    # Publish semver tags as releases.
-    tags: [ 'v*.*.*' ]
+    branches:
+      - main
   pull_request:
-    branches: [ "main" ]
+    branches:
+      - main
 
 env:
-  # Use docker.io for Docker Hub if empty
   REGISTRY: ghcr.io
-  # github.repository as <account>/<repo>
   IMAGE_NAME: ${{ github.repository }}
 
-
 jobs:
-  build:
 
+  # --------------------------------------------------------
+  # Job A: Checkout main, backend & frontend repositories
+  # --------------------------------------------------------
+  checkout:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
-      # This is used to complete the identity challenge
-      # with sigstore/fulcio when running outside of PRs.
-      id-token: write
-
     steps:
-      # Checkout including submodules (Backend + Frontend)
-      # 1️⃣ Checkout Hauptrepo (conduit-container)
+      # Checkout main repo (conduit-container) including submodules (Backend + Frontend)
       - name: Checkout main repo
         uses: actions/checkout@v4
 
-      # 2️⃣ Checkout Backend-Repo
       - name: Checkout backend repo
         uses: actions/checkout@v4
         with:
@@ -47,7 +31,6 @@ jobs:
           path: conduit-backend
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      # 3️⃣ Checkout Frontend-Repo
       - name: Checkout frontend repo
         uses: actions/checkout@v4
         with:
@@ -55,124 +38,161 @@ jobs:
           path: conduit-frontend
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      # Install the cosign tool except on PR
-      # https://github.com/sigstore/cosign-installer
-      - name: Install cosign
-        if: github.event_name != 'pull_request'
-        uses: sigstore/cosign-installer@59acb6260d9c0ba8f4a2f9d9b48431a222b68e20 #v3.5.0
+      # - name: Copy environment file
+      #   run: cp example.env .env
+
+
+  # --------------------------------------------------------
+  # Job B: Build backend image
+  # --------------------------------------------------------
+  build-backend-image:
+    runs-on: ubuntu-latest
+    needs: checkout
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
         with:
-          cosign-release: 'v2.2.4'
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backend
 
-      # Set up BuildKit Docker container builder to be able to build
-      # multi-platform images and export cache
-      # https://github.com/docker/setup-buildx-action
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@f95db51fddba0c2d1ec667646a06c2ce06100226 # v3.0.0
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@v3
 
-      # Login against a Docker registry except on PR
-      # https://github.com/docker/login-action
-      - name: Log into registry ${{ env.REGISTRY }}
-        if: github.event_name != 'pull_request'
-        uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # v3.0.0
+      - name: Build backend (no push)
+        id: build
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./dockerfile.backend
+          push: false
+          tags: ${{ steps.meta.outputs.tags }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+    outputs:
+      backend_tag: ${{ steps.meta.outputs.tags }}
+      backend_digest: ${{ steps.build.outputs.digest }}
+
+
+  # --------------------------------------------------------
+  # Job C: Build frontend image
+  # --------------------------------------------------------
+  build-frontend-image:
+    runs-on: ubuntu-latest
+    needs: checkout
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-frontend
+
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build frontend (no push)
+        id: build
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./dockerfile.frontend
+          push: false
+          tags: ${{ steps.meta.outputs.tags }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+    outputs:
+      frontend_tag: ${{ steps.meta.outputs.tags }}
+      frontend_digest: ${{ steps.build.outputs.digest }}
+
+
+  # --------------------------------------------------------
+  # Job D: Push backend image
+  # --------------------------------------------------------
+  push-backend-image:
+    runs-on: ubuntu-latest
+    needs: build-backend-image
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # Extract metadata (tags, labels) for Docker
-      # https://github.com/docker/metadata-action
-      - name: Extract Docker metadata
-        id: meta
-        uses: docker/metadata-action@96383f45573cb7f253c731d3b3ab81c87ef81934 # v5.0.0
+      - name: Push backend image
+        run: |
+          docker pull $(echo "${{ needs.build-backend-image.outputs.backend_tag }}" | head -n 1)
+          docker push $(echo "${{ needs.build-backend-image.outputs.backend_tag }}" | head -n 1)
+
+
+  # --------------------------------------------------------
+  # Job E: Push frontend image
+  # --------------------------------------------------------
+  push-frontend-image:
+    runs-on: ubuntu-latest
+    needs: build-frontend-image
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
         with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Push frontend image
+        run: |
+          docker pull $(echo "${{ needs.build-frontend-image.outputs.frontend_tag }}" | head -n 1)
+          docker push $(echo "${{ needs.build-frontend-image.outputs.frontend_tag }}" | head -n 1)
 
 
-      # Copy environment file
-      - name: Copy environment file
-        run: cp example.env .env
-        env:
-          SECRET_IP: ${{ secrets.SECRET_IP }}
+  # --------------------------------------------------------
+  # Job F: Sign images (cosign)
+  # --------------------------------------------------------
+  sign-images:
+    runs-on: ubuntu-latest
+    needs:
+      - push-backend-image
+      - push-frontend-image
 
-
-      # -----------------------
-      # BACKEND IMAGE
-      # -----------------------
-      # Build and push Docker image with Buildx (don't push on PR)
-      # https://github.com/docker/build-push-action
-      - name: Build and push backend image
-        id: build-and-push-backend
-        uses: docker/build-push-action@0565240e2d4ab88bba5387d719585280857ece09 # v5.0.0
+    steps:
+      - name: Install cosign
+        uses: sigstore/cosign-installer@v3
         with:
-          context: .
-          file: ./dockerfile.backend
-          push: ${{ github.event_name != 'pull_request' }}
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cosign-release: 'v2.2.4'
 
-
-      # Sign the resulting Docker image digest except on PRs.
-      # This will only write to the public Rekor transparency log when the Docker
-      # repository is public to avoid leaking data.  If you would like to publish
-      # transparency data even for private images, pass --force to cosign below.
-      # https://github.com/sigstore/cosign
       - name: Sign backend image
-        if: ${{ github.event_name != 'pull_request' }}
-        env:
-          # https://docs.github.com/en/actions/security-guides/security-hardening-for-github-actions#using-an-intermediate-environment-variable
-          TAGS: ${{ steps.meta.outputs.tags }}-backend
-          DIGEST: ${{ steps.build-and-push-backend.outputs.digest }}
-        # This step uses the identity token to provision an ephemeral certificate
-        # against the sigstore community Fulcio instance.
-        run: echo "${TAGS}" | xargs -I {} cosign sign --yes {}@${DIGEST}
-
-
-      # -----------------------
-      # FRONTEND IMAGE
-      # -----------------------
-      - name: Build and push frontend image
-        id: build-and-push-frontend
-        uses: docker/build-push-action@0565240e2d4ab88bba5387d719585280857ece09 # v5.0.0
-        with:
-          context: .
-          file: ./dockerfile.frontend
-          push: ${{ github.event_name != 'pull_request' }}
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+        run: echo "${{ needs.build-backend-image.outputs.backend_tag }}" | xargs cosign sign --yes
 
       - name: Sign frontend image
-        if: ${{ github.event_name != 'pull_request' }}
-        env:
-          # https://docs.github.com/en/actions/security-guides/security-hardening-for-github-actions#using-an-intermediate-environment-variable
-          TAGS: ${{ steps.meta.outputs.tags }}-frontend
-          DIGEST: ${{ steps.build-and-push-frontend.outputs.digest }}
-        # This step uses the identity token to provision an ephemeral certificate
-        # against the sigstore community Fulcio instance.
-        run: echo "${TAGS}" | xargs -I {} cosign sign --yes {}@${DIGEST}
+        run: echo "${{ needs.build-frontend-image.outputs.frontend_tag }}" | xargs cosign sign --yes
 
 
-      # Remote SSH Command
+  # --------------------------------------------------------
+  # Job G: Deploy to server
+  # --------------------------------------------------------
+  deploy:
+    runs-on: ubuntu-latest
+    needs: sign-images
+    steps:
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1
         with:
           host: ${{ secrets.SECRET_IP }}
           username: ${{ secrets.SSH_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }} 
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.PORT }}
-          # echo "Connected to server"
-          # cd /home/deploy/conduit-container || exit 1
-          # docker pull ghcr.io/ishakates/conduit-container:backend-latest
-          # docker pull ghcr.io/ishakates/conduit-container:frontend-latest
-          # docker compose down
-          # docker compose up -d
           script: |
-            whoami
-            echo "Pulling new images..."
-            docker pull ghcr.io/ishakates/conduit-container:backend-latest
-            docker pull ghcr.io/ishakates/conduit-container:frontend-latest
+            echo "Pulling updated images..."
+            docker pull ghcr.io/ishakates/conduit-container-backend:latest
+            docker pull ghcr.io/ishakates/conduit-container-frontend:latest
             docker compose down
             docker compose up -d
