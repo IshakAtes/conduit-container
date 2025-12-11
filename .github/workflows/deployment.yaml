@@ -64,15 +64,17 @@ jobs:
         with:
           submodules: true
 
-  # --------------------------------------------------------
-  # Generate environment.ts in Frontend
-  # --------------------------------------------------------
+      # --------------------------------------------------------
+      # Generate environment.ts in Frontend
+      # --------------------------------------------------------
       - name: Generate Angular environment.ts
         run: |
+          mkdir -p conduit-frontend/src/environments
           echo "export const environment = {" > conduit-frontend/src/environments/environment.ts
           echo "  production: true," >> conduit-frontend/src/environments/environment.ts
           echo "  API_URL: '${{ secrets.API_URL }}'," >> conduit-frontend/src/environments/environment.ts
           echo "};"
+
 
       - name: Build frontend image
         uses: docker/build-push-action@v5
