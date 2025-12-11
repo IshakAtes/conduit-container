@@ -13,6 +13,9 @@ env:
   OWNER: ishakates
   REPO: conduit
 
+permissions:
+  packages: write
+
 jobs:
 
   # --------------------------------------------------------
