@@ -10,7 +10,8 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
+  OWNER: ishakates
+  REPO: conduit
 
 jobs:
 
@@ -43,7 +44,7 @@ jobs:
           context: .
           file: ./dockerfile.backend
           push: false
-          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backend:latest
+          tags: ${{ env.REGISTRY }}/${{ env.OWNER }}/${{ env.REPO }}-backend:latest
 
 
   # --------------------------------------------------------
@@ -59,7 +60,7 @@ jobs:
           context: .
           file: ./dockerfile.frontend
           push: false
-          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-frontend:latest
+          tags: ${{ env.REGISTRY }}/${{ env.OWNER }}/${{ env.REPO }}-frontend:latest
 
 
 
