@@ -44,8 +44,6 @@ jobs:
           file: ./dockerfile.backend
           push: false
           tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backend:latest
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
 
 
   # --------------------------------------------------------
@@ -62,8 +60,7 @@ jobs:
           file: ./dockerfile.frontend
           push: false
           tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-frontend:latest
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+
 
 
   # --------------------------------------------------------
