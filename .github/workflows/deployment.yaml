@@ -14,7 +14,9 @@ env:
   REPO: conduit
 
 permissions:
+  contents: read
   packages: write
+  id-token: write
 
 jobs:
 
@@ -107,17 +109,20 @@ jobs:
     needs:
       - build-backend-image
       - build-frontend-image
+    permissions:
+      id-token: write
+      contents: read
     steps:
       - name: Install cosign
         uses: sigstore/cosign-installer@v3
-        with:
-          cosign-release: 'v2.2.4'
 
       - name: Sign backend image
-        run: echo "${{ env.REGISTRY }}/${{ env.OWNER }}/${{ env.REPO }}-backend:latest" | xargs cosign sign --yes
+        run: |
+          cosign sign --yes ${{ env.REGISTRY }}/${{ env.OWNER }}/${{ env.REPO }}-backend:latest
 
       - name: Sign frontend image
-        run: echo "${{ env.REGISTRY }}/${{ env.OWNER }}/${{ env.REPO }}-frontend:latest" | xargs cosign sign --yes
+        run: |
+          cosign sign --yes ${{ env.REGISTRY }}/${{ env.OWNER }}/${{ env.REPO }}-frontend:latest
 
 
   # --------------------------------------------------------
