@@ -73,8 +73,7 @@ jobs:
           echo "export const environment = {" > conduit-frontend/src/environments/environment.ts
           echo "  production: true," >> conduit-frontend/src/environments/environment.ts
           echo "  API_URL: '${{ secrets.API_URL }}'," >> conduit-frontend/src/environments/environment.ts
-          echo "};"
-
+          echo "};" >> conduit-frontend/src/environments/environment.ts
 
       - name: Build frontend image
         uses: docker/build-push-action@v5
