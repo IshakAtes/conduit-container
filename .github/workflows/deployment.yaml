@@ -31,10 +31,6 @@ jobs:
         with:
           submodules: true  # <-- lädt Backend & Frontend automatisch
 
-      # Optional: Environment file kopieren
-      - name: Copy environment file
-        run: cp example.env .env
-
 
   # --------------------------------------------------------
   # Job B: Build and Push backend image in ghcr.io
@@ -151,8 +147,11 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.PORT }}
           script: |
-            echo "Pulling updated images..."
+            cd /opt/conduit-container
+
+            echo "${{ secrets.ENV_FILE }}" > .env
+
             docker pull ${{ env.REGISTRY }}/ishakates/conduit-backend:latest
             docker pull ${{ env.REGISTRY }}/ishakates/conduit-frontend:latest
-            docker compose down
-            docker compose up -d
+
+            docker compose up -d --remove-orphans
