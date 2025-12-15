@@ -147,7 +147,7 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.PORT }}
           script: |
-            cd /home/username/conduit-container
+            cd /$HOME/conduit-container
 
             echo "${{ secrets.ENV_FILE }}" > .env
 
