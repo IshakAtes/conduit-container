@@ -157,7 +157,7 @@ jobs:
   # --------------------------------------------------------
   deploy:
     runs-on: ubuntu-latest
-    needs: sign-images
+    needs: copy-compose-to-server
     steps:
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1
