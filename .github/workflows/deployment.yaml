@@ -149,7 +149,7 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.PORT }}
           source: docker-compose.workflow.yaml
-          target: /home/${{ secrets.SSH_USER }}/conduit-container/docker-compose.yaml
+          target: /home/${{ secrets.SSH_USER }}/conduit-container
 
 
   # --------------------------------------------------------
