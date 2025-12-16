@@ -174,4 +174,4 @@ jobs:
             docker pull ${{ env.REGISTRY }}/ishakates/conduit-backend:latest
             docker pull ${{ env.REGISTRY }}/ishakates/conduit-frontend:latest
 
-            docker compose up -d --remove-orphans
+            docker compose -f docker-compose.workflow.yaml up -d --remove-orphans
