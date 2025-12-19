@@ -171,7 +171,7 @@ jobs:
 
             echo "${{ secrets.ENV_FILE }}" > .env
 
-            docker pull ${{ env.REGISTRY }}/ishakates/conduit-backend:latest
-            docker pull ${{ env.REGISTRY }}/ishakates/conduit-frontend:latest
+            docker pull ${{ env.REGISTRY }}/${{ env.OWNER }}/conduit-backend:latest
+            docker pull ${{ env.REGISTRY }}/${{ env.OWNER }}/conduit-frontend:latest
 
             docker compose -f docker-compose.workflow.yaml up -d --remove-orphans
