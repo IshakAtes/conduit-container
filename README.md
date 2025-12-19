@@ -14,6 +14,7 @@ Containerized full-stack **Conduit** application with an **Angular frontend** an
 3. [Quickstart (Automated Deployment)](#quickstart-automated-deployment)
 4. [Secrets & Configuration](#secrets--configuration)
 5. [Result](#result)
+6. [Conclusion](#conclusion)
 
 ---
 
@@ -81,7 +82,7 @@ The deployment is fully controlled via **GitHub Actions secrets**.
 
 Add the following secrets in your repository:
 Go to your `conduit-container project -> settings -> Secrets and variables -> Actions`
-click the button -> **New repository secret**
+click the button -> **`New repository secret`**
 and create these secrets
 
 | Secret Name       | Description                                                     |
