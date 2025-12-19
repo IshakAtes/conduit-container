@@ -1,7 +1,7 @@
 # Conduit Container
 
 **Guide:**
-[Link to Pdf Checklist](https://github.com/IshakAtes/conduit-container/blob/e317db84d754bef8609d07e03e4f50e828255f58/Conduit%20Container%20Checkliste.pdf)
+[Link to Pdf Checklist](https://github.com/IshakAtes/conduit-container/blob/lab/Conduit%20Deployment%20Checkliste.pdf)
 
 Containerized full-stack **Conduit** application with an **Angular frontend** and **Django backend**, deployed via **Docker Compose** and **fully automated using GitHub Actions (CI/CD)**.
 
