@@ -3,18 +3,19 @@
 **Guide:**
 [Link to Pdf Checklist](https://github.com/IshakAtes/conduit-container/blob/lab/Conduit%20Deployment%20Checkliste.pdf)
 
-Containerized full-stack **Conduit** application with an **Angular frontend** and **Django backend**, deployed via **Docker Compose** and **fully automated using GitHub Actions (CI/CD)**.
+Containerized full-stack Conduit application demonstrating a production-grade **CI/CD** deployment workflow using **Docker Compose** and **GitHub Actions**.
+
+The stack consists of an **Angular frontend** and a **Django REST backend**, **fully automated** from build to deployment without manual server interaction.
 
 ---
 
 ## Table of Contents
 
 1. [Project Overview](#project-overview)
-2. [Deployment Concept](#deployment-concept)
-3. [Quickstart (Automated Deployment)](#quickstart-automated-deployment)
-4. [Secrets & Configuration](#secrets--configuration)
-5. [Result](#result)
-6. [Conclusion](#conclusion)
+2. [Quickstart (Automated Deployment)](#quickstart-automated-deployment)
+3. [Usage](#usage)
+4. [Result](#result)
+5. [Conclusion](#conclusion)
 
 ---
 
@@ -65,14 +66,25 @@ Before using this repository, ensure the following:
 
 ---
 
-### 1. Fork or clone the repository
+### 1. Fork the repository (required)
+
+To use this deployment setup, fork this repository into your own GitHub account.
+
+All CI/CD workflows run entirely inside GitHub Actions.
+No local clone is required for deployment.
+
+### Optional: Clone locally (development / inspection)
+
+Cloning the repository locally is only required if you want to:
+
+* inspect or modify the workflow
+* adjust Dockerfiles
+* extend the application itself
 
 ```bash
-git clone https://github.com/IshakAtes/conduit-container.git
+git clone git@github.com:IshakAtes/conduit-container.git
 cd conduit-container
 ```
-
-No repository files need to be copied to the server manually.
 
 ---
 
@@ -118,6 +130,82 @@ No manual server interaction is required.
 
 ---
 
+
+## Usage
+
+This section explains how the deployment can be configured and customized without modifying the server or manually interacting with Docker.
+
+The entire behavior of the deployment is controlled via **GitHub Secrets** and environment variables.
+
+---
+
+### Configuration Overview
+
+The deployment is driven by three configuration layers:
+
+1. **GitHub Actions workflow**
+2. **GitHub Secrets**
+3. **Docker Compose environment variables (`.env`)**
+
+The target server itself remains static and only requires Docker, Docker Compose, and SSH access.
+
+---
+
+### GitHub Secrets Configuration
+
+All runtime configuration is injected via repository secrets.
+
+#### Required Secrets
+
+| Secret Name       | Purpose |
+|------------------|--------|
+| `SECRET_IP` | Public IP or hostname of the target server |
+| `SSH_USER` | SSH user used by GitHub Actions |
+| `SSH_PRIVATE_KEY` | Private key for SSH authentication |
+| `PORT` | SSH port (default: 22) |
+| `ENV_FILE` | Full `.env` file content used by Docker Compose |
+| `API_URL` | Public backend URL consumed by the frontend |
+
+Changing any **secret** requires re-running the workflow to apply the new configuration.
+
+---
+
+### `.env` File (Runtime Configuration)
+
+The `.env` file is **not stored in the repository**.  
+Instead, it is defined as a single multi-line GitHub Secret (`ENV_FILE`) and written to disk on the server during deployment.
+
+This allows full control over the runtime behavior without rebuilding images.
+
+#### Example `.env` content
+``` env
+# Server IP for allowed hosts
+SECRET_IP=<SECRET_IP>
+LOCALHOST=localhost
+LOCALHOST_2=127.0.0.1
+
+# Public-facing ports on the host
+SERVER_PORT_FRONTEND=8282
+CONTAINER_PORT_FRONTEND=80
+SERVER_PORT_BACKEND=8000
+CONTAINER_PORT_BACKEND=8000
+
+# Database
+POSTGRES_USER=conduit
+POSTGRES_PASSWORD=conduit
+POSTGRES_DB=conduit_db
+POSTGRES_HOST=db
+POSTGRES_PORT=5432
+
+# Superuser
+SUPER_USER_NAME=mrfoo
+SUPER_USER_EMAIL=foo@gmail.com
+SUPER_USER_PASSWORD=test123
+```
+
+
+---
+
 ## Result
 
 After a successful workflow run:
@@ -143,4 +231,4 @@ By separating:
 * build responsibility (GitHub)
 * runtime responsibility (server)
 
-the system remains clean, secure, and easily reproducible for any user who clones the repository and provides the required secrets.
+the system remains clean, secure, and easily reproducible for any user who forks the repository and configures the required GitHub Secrets.
