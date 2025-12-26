@@ -7,8 +7,6 @@ Containerized full-stack Conduit application demonstrating a production-grade **
 
 The stack consists of an **Angular frontend** and a **Django REST backend**, **fully automated** from build to deployment without manual server interaction.
 
----
-
 ## Table of Contents
 
 1. [Project Overview](#project-overview)
@@ -17,7 +15,6 @@ The stack consists of an **Angular frontend** and a **Django REST backend**, **f
 4. [Result](#result)
 5. [Conclusion](#conclusion)
 
----
 
 ## Project Overview
 
@@ -45,7 +42,6 @@ This makes the deployment:
 * secure
 * cloud-provider agnostic
 
----
 
 ## Quickstart (Automated Deployment)
 
@@ -64,7 +60,6 @@ Before using this repository, ensure the following:
 * Docker Compose v2 installed
 * SSH access (key-based authentication recommended)
 
----
 
 ### 1. Fork the repository (required)
 
@@ -86,7 +81,6 @@ git clone git@github.com:IshakAtes/conduit-container.git
 cd conduit-container
 ```
 
----
 
 ### 2. Configure GitHub Secrets
 
@@ -108,7 +102,6 @@ and create these secrets
 
 The `.env` file is **generated automatically on the server** during deployment.
 
----
 
 ### 3. Trigger the deployment
 
@@ -126,9 +119,7 @@ The workflow will:
 5. create the `.env` file on the server
 6. start the application using Docker Compose
 
-No manual server interaction is required.
-
----
+**No manual server interaction is required.**
 
 
 ## Usage
@@ -137,7 +128,6 @@ This section explains how the deployment can be configured and customized withou
 
 The entire behavior of the deployment is controlled via **GitHub Secrets** and environment variables.
 
----
 
 ### Configuration Overview
 
@@ -149,7 +139,6 @@ The deployment is driven by three configuration layers:
 
 The target server itself remains static and only requires Docker, Docker Compose, and SSH access.
 
----
 
 ### GitHub Secrets Configuration
 
@@ -168,7 +157,6 @@ All runtime configuration is injected via repository secrets.
 
 Changing any **secret** requires re-running the workflow to apply the new configuration.
 
----
 
 ### `.env` File (Runtime Configuration)
 
@@ -204,8 +192,6 @@ SUPER_USER_PASSWORD=test123
 ```
 
 
----
-
 ## Result
 
 After a successful workflow run:
@@ -220,7 +206,6 @@ After a successful workflow run:
 
 * Future updates are deployed automatically on every push to `main`
 
----
 
 ## Conclusion
 
