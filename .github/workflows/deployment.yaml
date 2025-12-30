@@ -22,13 +22,13 @@ jobs:
   # --------------------------------------------------------
   # Job A: Checkout main repo inkl. Submodule
   # --------------------------------------------------------
-  checkout:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout main repo with submodules
-        uses: actions/checkout@v4
-        with:
-          submodules: true  # <-- lädt Backend & Frontend automatisch
+  # checkout:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Checkout main repo with submodules
+  #       uses: actions/checkout@v4
+  #       with:
+  #         submodules: true  # <-- lädt Backend & Frontend automatisch
 
 
   # --------------------------------------------------------
