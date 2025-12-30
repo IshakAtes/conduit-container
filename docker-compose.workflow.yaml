@@ -1,0 +1,33 @@
+services:
+  backend:
+    image: ghcr.io/ishakates/conduit-backend:latest
+    container_name: conduit_backend
+    ports:
+      - "${SERVER_PORT_BACKEND:-8000}:${CONTAINER_PORT_BACKEND:-8000}"
+    env_file:
+      - .env
+    volumes:
+      - backend_data:/app/data
+    restart: always
+    networks:
+      - conduit_net
+
+  frontend:
+    image: ghcr.io/ishakates/conduit-frontend:latest
+    container_name: conduit_frontend
+    ports:
+      - "${SERVER_PORT_FRONTEND:-8282}:${CONTAINER_PORT_FRONTEND:-80}"
+    env_file:
+      - .env
+    depends_on:
+      - backend
+    restart: always
+    networks:
+      - conduit_net
+
+volumes:
+  backend_data:
+
+networks:
+  conduit_net:
+    driver: bridge
