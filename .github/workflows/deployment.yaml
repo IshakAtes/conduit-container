@@ -20,19 +20,7 @@ permissions:
 
 jobs:
   # --------------------------------------------------------
-  # Job A: Checkout main repo inkl. Submodule
-  # --------------------------------------------------------
-  # checkout:
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: Checkout main repo with submodules
-  #       uses: actions/checkout@v4
-  #       with:
-  #         submodules: true  # <-- lädt Backend & Frontend automatisch
-
-
-  # --------------------------------------------------------
-  # Job B: Build and Push backend image in ghcr.io
+  # Job A: Build and Push backend image in ghcr.io
   # --------------------------------------------------------
   build-backend-image:
     runs-on: ubuntu-latest
@@ -58,7 +46,7 @@ jobs:
 
 
   # --------------------------------------------------------
-  # Job C: Build and Push frontend image in ghcr.io
+  # Job B: Build and Push frontend image in ghcr.io
   # --------------------------------------------------------
   build-frontend-image:
     runs-on: ubuntu-latest
@@ -96,7 +84,7 @@ jobs:
 
 
   # --------------------------------------------------------
-  # Job D: Sign images (cosign)
+  # Job C: Sign images (cosign)
   # --------------------------------------------------------
   sign-images:
     runs-on: ubuntu-latest
@@ -131,7 +119,7 @@ jobs:
 
 
   # --------------------------------------------------------
-  # Job E: Copy docker-compose.workflow.yaml to server
+  # Job D: Copy docker-compose.workflow.yaml to server
   # --------------------------------------------------------
   copy-compose-to-server:
     runs-on: ubuntu-latest
@@ -152,7 +140,7 @@ jobs:
 
 
   # --------------------------------------------------------
-  # Job F: Deploy to server
+  # Job E: Deploy to server
   # --------------------------------------------------------
   deploy:
     runs-on: ubuntu-latest
